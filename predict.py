@@ -5,7 +5,7 @@ import pandas as pd
 import requests
 
 
-QUICKML_ENDPOINT_URL = "YOUR_PUBLISHED_QUICKML_ENDPOINT_URL_HERE"
+QUICKML_ENDPOINT_URL = "https://api.catalyst.zoho.in/quickml/v1/project/101799000000013049/endpoints/predict"
 
 
 def predict(input_df: pd.DataFrame):
