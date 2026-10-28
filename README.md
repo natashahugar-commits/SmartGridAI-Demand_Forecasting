@@ -1,4 +1,6 @@
 SmartGridAI — Smart Energy Microgrid & Demand Forecasting
+live dashboard link:
+https://smartgridai-demand-f-kiffeosw.onslate.in/
 
 Overview
 
