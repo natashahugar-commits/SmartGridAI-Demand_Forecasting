@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SmartGridAI | Energy Intelligence</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+:root {
+  --bg:#0b1120; --panel:#131d30; --border:#25334b;
+  --text:#edf4ff; --muted:#92a2bb; --cyan:#38d9f5;
+  --green:#46e0a0; --orange:#ffb454; --red:#ff647c;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);
+font-family:Inter,system-ui,Arial,sans-serif}
+header{padding:22px 5%;border-bottom:1px solid var(--border);
+display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.brand{font-size:22px;font-weight:800;letter-spacing:-.5px}
+.brand span{color:var(--cyan)}
+.sub{font-size:12px;color:var(--muted);margin-top:5px}
+.pill{border:1px solid var(--border);padding:9px 13px;border-radius:20px;
+font-size:12px;color:var(--green)}
+main{max-width:1250px;margin:auto;padding:28px 5% 50px}
+h1{font-size:29px;margin:0 0 8px}
+.intro{color:var(--muted);margin-bottom:25px;font-size:14px;line-height:1.6}
+.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:15px}
+.card{background:var(--panel);border:1px solid var(--border);
+border-radius:15px;padding:20px;min-width:0}
+.label{color:var(--muted);font-size:12px}
+.value{font-size:28px;font-weight:750;margin:13px 0 7px}
+.note{font-size:12px;color:var(--muted)}
+.cyan{color:var(--cyan)}.green{color:var(--green)}
+.orange{color:var(--orange)}.red{color:var(--red)}
+.section{margin-top:22px}
+.section-title{font-size:17px;font-weight:700;margin:0 0 15px}
+.layout{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(250px,1fr);gap:16px}
+.chartbox{height:300px;position:relative}
+.mode{display:flex;align-items:center;gap:10px;margin:15px 0;padding:14px;
+background:#0b1526;border:1px solid var(--border);border-radius:10px}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--green)}
+.bar{height:9px;background:#27374c;border-radius:10px;overflow:hidden;margin:12px 0}
+.fill{height:100%;width:72%;background:var(--cyan);border-radius:10px;transition:width .3s}
+button{background:var(--cyan);border:0;border-radius:9px;padding:11px 15px;
+font-weight:750;cursor:pointer;color:#07111c}
+button.secondary{background:#24344a;color:var(--text);border:1px solid var(--border)}
+.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:16px}
+.alert{border:1px solid #563647;background:#281b2b;border-radius:10px;
+padding:14px;margin-top:12px;font-size:13px;line-height:1.5}
+.alert.safe{border-color:#235544;background:#122a29}
+.smalltitle{font-weight:700;margin-bottom:8px}
+footer{text-align:center;color:var(--muted);font-size:11px;margin-top:28px}
+@media(max-width:800px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+.layout{grid-template-columns:1fr}h1{font-size:25px}}
+@media(max-width:430px){.value{font-size:24px}.card{padding:15px}}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <div class="brand">⚡ SmartGrid<span>AI</span></div>
+    <div class="sub">INTELLIGENT ENERGY MANAGEMENT</div>
+  </div>
+  <div class="pill">● DEMO DASHBOARD</div>
+</header>
+
+<main>
+  <h1>Energy Command Center</h1>
+  <p class="intro">Monitor demand, understand switching decisions, and track renewable storage. This dashboard currently uses illustrative demo data.</p>
+
+  <div class="grid">
+    <div class="card">
+      <div class="label">CURRENT PREDICTED LOAD</div>
+      <div class="value cyan" id="load">148 kW</div>
+      <div class="note">Illustrative forecast value</div>
+    </div>
+    <div class="card">
+      <div class="label">ACTIVE GRID MODE</div>
+      <div class="value green" id="modeValue">Main Grid</div>
+      <div class="note" id="modeNote">Normal operating mode</div>
+    </div>
+    <div class="card">
+      <div class="label">BATTERY STATE OF CHARGE</div>
+      <div class="value" id="socValue">72%</div>
+      <div class="bar"><div class="fill" id="batteryFill"></div></div>
+      <div class="note">Illustrative battery level</div>
+    </div>
+    <div class="card">
+      <div class="label">OVERLOAD STATUS</div>
+      <div class="value green" id="alertValue">Normal</div>
+      <div class="note" id="alertNote">Below 200 kW threshold</div>
+    </div>
+  </div>
+
+  <div class="section layout">
+    <div class="card">
+      <div class="section-title">24-Hour Demand Forecast</div>
+      <div class="chartbox"><canvas id="forecastChart"></canvas></div>
+      <div class="note">Illustrative data · Not connected to live QuickML yet</div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">Grid Switching Controller</div>
+      <div class="label">DEMO LOAD INPUT (kW)</div>
+      <div class="value cyan" id="inputLoad">148 kW</div>
+      <input id="loadSlider" aria-label="Demo electricity demand in kilowatts"
+       type="range" min="50" max="240" value="148" style="width:100%;accent-color:var(--cyan)">
+      <div style="display:flex;justify-content:space-between" class="note">
+        <span>50 kW</span><span>240 kW</span>
+      </div>
+      <div class="mode">
+        <span class="dot" id="modeDot"></span>
+        <div>
+          <div class="smalltitle" id="modeDetail">Main Grid Mode</div>
+          <div class="note" id="reason">Demand is within the normal range.</div>
+        </div>
+      </div>
+      <div class="actions">
+        <button id="simulate">Simulate Next Hour</button>
+        <button class="secondary" id="reset">Reset Demo</button>
+      </div>
+      <div class="note" style="margin-top:13px">Change the load slider to test the switching rules.</div>
+    </div>
+  </div>
+
+  <div class="section layout">
+    <div class="card">
+      <div class="section-title">System Rules</div>
+      <div class="mode"><span class="dot"></span><div><b>Renewable Storage Mode</b><div class="note">Demand above 160 kW OR time from 18:00 to 22:00 inclusive.</div></div></div>
+      <div class="mode"><span class="dot" style="background:var(--cyan)"></span><div><b>Main Grid Mode</b><div class="note">Demand at or below 160 kW and outside the evening window.</div></div></div>
+      <div class="mode"><span class="dot" style="background:var(--red)"></span><div><b>Critical Overload Alert</b><div class="note">Demand at or above 200 kW, regardless of grid mode.</div></div></div>
+    </div>
+    <div class="card">
+      <div class="section-title">System Alerts</div>
+      <div id="alertBox" class="alert safe">System nominal. No critical overload in the current demo.</div>
+      <div class="note" style="margin-top:14px">The alert updates when you change the demo load. This is a simulation, not a real power-system controller.</div>
+    </div>
+  </div>
+  <footer>SmartGridAI · Hackathon Prototype · Demo values are illustrative</footer>
+</main>
+
+<script>
+const labels = Array.from({length:24},(_,i)=>String(i).padStart(2,"0")+":00");
+const values = [92,84,78,74,72,80,105,124,137,145,151,148,
+  142,139,146,155,172,188,205,214,201,178,142,110];
+
+new Chart(document.getElementById("forecastChart"),{
+  type:"line",
+  data:{labels,datasets:[{
+    label:"Predicted demand (kW)",data:values,
+    borderColor:"#38d9f5",backgroundColor:"rgba(56,217,245,.10)",
+    fill:true,tension:.35,pointRadius:2,pointHoverRadius:5
+  }]},
+  options:{
+    responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{labels:{color:"#edf4ff"}}},
+    scales:{
+      x:{ticks:{color:"#92a2bb",maxTicksLimit:8},grid:{color:"#25334b"}},
+      y:{beginAtZero:true,title:{display:true,text:"kW",color:"#92a2bb"},
+        ticks:{color:"#92a2bb"},grid:{color:"#25334b"}}
+    }
+  }
+});
+
+let currentHour=10;
+const slider=document.getElementById("loadSlider");
+function updateDashboard(load){
+  const evening=currentHour>=18 && currentHour<=22;
+  const renewable=load>160 || evening;
+  const overload=load>=200;
+
+  document.getElementById("load").textContent=load+" kW";
+  document.getElementById("inputLoad").textContent=load+" kW";
+  document.getElementById("modeValue").textContent=renewable?"Renewable":"Main Grid";
+  document.getElementById("modeValue").className="value "+(renewable?"cyan":"green");
+  document.getElementById("modeNote").textContent=evening?"Evening switching window":"Based on demand threshold";
+  document.getElementById("modeDetail").textContent=renewable?"Renewable Storage Mode":"Main Grid Mode";
+  document.getElementById("modeDot").style.background=overload?"#ff647c":renewable?"#ffb454":"#46e0a0";
+  document.getElementById("reason").textContent=evening
+    ?"Evening window is active ("+String(currentHour).padStart(2,"0")+":00)."
+    :load>160?"Demand exceeds 160 kW.":"Demand is at or below 160 kW.";
+  document.getElementById("alertValue").textContent=overload?"CRITICAL":"Normal";
+  document.getElementById("alertValue").className="value "+(overload?"red":"green");
+  document.getElementById("alertNote").textContent=overload?"Demand is at least 200 kW":"Below 200 kW threshold";
+  const box=document.getElementById("alertBox");
+  box.className="alert "+(overload?"":"safe");
+  box.textContent=overload
+    ?"⚠ CRITICAL OVERLOAD: predicted demand is "+load+" kW. Immediate attention required."
+    :"System nominal. No critical overload in the current demo.";
+  document.getElementById("batteryFill").style.width=document.getElementById("socValue").textContent;
+}
+slider.addEventListener("input",()=>updateDashboard(Number(slider.value)));
+document.getElementById("simulate").addEventListener("click",()=>{
+  currentHour=(currentHour+1)%24;
+  const load=values[currentHour];
+  slider.value=load;
+  updateDashboard(load);
+});
+document.getElementById("reset").addEventListener("click",()=>{
+  currentHour=10;slider.value=148;
+  document.getElementById("socValue").textContent="72%";
+  updateDashboard(148);
+});
+updateDashboard(148);
+</script>
+</body>
+</html>
